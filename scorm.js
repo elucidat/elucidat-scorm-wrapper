@@ -31,14 +31,18 @@ Debug_API.prototype.LMSGetLastError = function () { console.log('Debug_api:LMSGe
 Debug_API.prototype.LMSGetErrorString = function (code) { console.log('Debug_api:LMSGetErrorString: '+code); return "lms-not-present"; };
 Debug_API.prototype.LMSGetDiagnostic = function (code) { console.log('Debug_api:LMSGetDiagnostic: '+code); return "lms-not-present"; };
 
-var Scorm = function (options) {
+var Scorm = function () {
 	this.scorm_interface = null;
 	// default used by debug interface
 	this.mode = '2004';
 	this.active = false;
 	this.objectives = 0;
+	this.start_time = new Date().getTime() / 1000;
+	this.has_score = false;
+	this.pass_action = 'completed'; // passed or completed
+
 	// we need to search window, window.parent(s) and window.top.opener for either API or API_1484_11
-	//this._search_for_api ( window );
+	this._search_for_api ( window );
 	
 	if (this.scorm_interface == null) {
 		console.log('LMS not present - Created SCORM '+this.mode+' Debug interface.'); 
@@ -47,17 +51,31 @@ var Scorm = function (options) {
 		console.log('Found SCORM '+this.mode+' interface.'); 
 	}
 };
-
+Scorm.prototype._get_session_time = function ( mode ) {
+	function pad(num, size) {
+    	var s = "0000" + new String(Math.round(num));
+    	return s.substr(s.length-size);
+	}
+	var session_time = ( new Date().getTime() / 1000 ) - this.start_time;
+	// scorm 2004
+	if (mode == '2004') return Math.round(session_time);
+	// scorm 1.2
+	var hours = Math.floor(session_time / 3600);
+		session_time = session_time - (hours * 3600);
+	var minutes = Math.floor(session_time / 60);
+	var session_time = session_time - (minutes * 60);
+	return pad(hours,4)+':'+pad(minutes,2)+':'+pad(session_time,2);
+}
 Scorm.prototype._search_for_api = function ( win ) {
 	try {
 		while (win != null && this.scorm_interface == null) {
 			// record the API if we've found it
-			if (win.API) {
-				this.scorm_interface = win.API;
-				this.mode = '1.2';
-			} else if (win.API_1484_11) {
+			if (win.API_1484_11) {
 				this.scorm_interface = win.API_1484_11;
 				this.mode = '2004';
+			} else if (win.API) {
+				this.scorm_interface = win.API;
+				this.mode = '1.2';
 			}
 			// now branch off to look at the window opener of this window.
 			if (win.opener != null && !win.opener.closed)
@@ -94,7 +112,7 @@ Scorm.prototype.Initialize = function () {
 		this.scorm_interface.LMSInitialize('');
 	}
 	// check for errors
-	if (!this.Check()) this.active = true;
+	if (this.Check()==0) this.active = true;
 	return this.active;
 };
 Scorm.prototype.Terminate = function () { 
@@ -102,11 +120,16 @@ Scorm.prototype.Terminate = function () {
 	if (this.mode == '2004') {
 		this.scorm_interface.Terminate('');
 	} else if (this.mode == '1.2') {
-		this.scorm_interface.LMSTerminate('');
+		this.scorm_interface.LMSFinish('');
 	}
 	// check for errors
-	if (!this.Check()) this.active = false;
+	if (this.Check()==0) this.active = false;
 };
+Scorm.prototype.Deactivate = function () { 
+	console.log('Scorm:Deactivate');
+	this.active = false;
+};
+
 Scorm.prototype.SetValue = function ( varname, value ) { 
 	if (this.active) {
 		console.log('Scorm:SetValue: '+varname+'='+value);
@@ -195,12 +218,20 @@ Scorm.prototype.SetOutcome = function ( outcome ) {
 		} else if (outcome == 'failed') {
 			this.SetValue('cmi.success_status','failed');
 		}
+		// session time
+		this.SetValue('cmi.session_time',this._get_session_time('2004'));
 	} else if (this.mode == '1.2') {
-		// complete and outcome are stored in the same variable, so we just use completion status
-		if (outcome == 'passed') 
-			this.SetCompletionStatus('passed');
-		else if (outcome == 'failed') 
-			this.SetCompletionStatus('failed');
+		if (this.has_score && this.pass_action == 'passed') {
+			// complete and outcome are stored in the same variable, so we just use completion status
+			if (outcome == 'passed')
+				this.SetCompletionStatus('passed');
+			else if (outcome == 'failed') 
+				this.SetCompletionStatus('failed');
+		} else {
+			this.SetCompletionStatus('completed');
+		}
+		// session time
+		this.SetValue('cmi.core.session_time',this._get_session_time('1.2'));
 	}
 	// this one is important so save
 	this.Commit();
@@ -210,7 +241,6 @@ Scorm.prototype.Passed = function () {
 	// set score
 	// mark as complete
 	this.SetOutcome( 'passed' );
-
 };
 Scorm.prototype.Failed = function () { 
 	// set score
@@ -218,6 +248,7 @@ Scorm.prototype.Failed = function () {
 	this.SetOutcome( 'failed' );
 };
 Scorm.prototype.SetScore = function (score, min, max) { 
+	this.has_score = true;
 	if (this.mode == '2004') {
 		this.SetValue('cmi.score.raw',score);
 		this.SetValue('cmi.score.min',min);
