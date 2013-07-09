@@ -118,6 +118,10 @@ Scorm.prototype.Initialize = function () {
 	}
 	// check for errors
 	if (this.Check()==0) this.active = true;
+
+	// mark course as incomplete
+	this.SetCompletionStatus('incomplete');
+	
 	return this.active;
 };
 Scorm.prototype.Terminate = function () { 
