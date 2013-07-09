@@ -34,7 +34,7 @@ Debug_API.prototype.LMSGetDiagnostic = function (code) { console.log('Debug_api:
 var Scorm = function () {
 	this.scorm_interface = null;
 	// default used by debug interface
-	this.mode = '2004';
+	this.mode = null;
 	this.active = false;
 	this.objectives = 0;
 	this.start_time = new Date().getTime() / 1000;
@@ -43,8 +43,14 @@ var Scorm = function () {
 
 	// we need to search window, window.parent(s) and window.top.opener for either API or API_1484_11
 	this._search_for_api ( window );
+	// now test to see if the interface is 1.2 or 2004
+	if ("LMSCommit" in this.scorm_interface)
+		this.mode = "1.2";
+	else
+		this.mode = "2004";
 	
 	if (this.scorm_interface == null) {
+		this.mode = '2004';
 		console.log('LMS not present - Created SCORM '+this.mode+' Debug interface.'); 
 		this.scorm_interface = new Debug_API();
 	} else {
@@ -72,10 +78,8 @@ Scorm.prototype._search_for_api = function ( win ) {
 			// record the API if we've found it
 			if (win.API_1484_11) {
 				this.scorm_interface = win.API_1484_11;
-				this.mode = '2004';
 			} else if (win.API) {
 				this.scorm_interface = win.API;
-				this.mode = '1.2';
 			}
 			// now branch off to look at the window opener of this window.
 			if (win.opener != null && !win.opener.closed)
