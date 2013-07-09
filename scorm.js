@@ -43,17 +43,18 @@ var Scorm = function () {
 
 	// we need to search window, window.parent(s) and window.top.opener for either API or API_1484_11
 	this._search_for_api ( window );
-	// now test to see if the interface is 1.2 or 2004
-	if ("LMSCommit" in this.scorm_interface)
-		this.mode = "1.2";
-	else
-		this.mode = "2004";
 	
 	if (this.scorm_interface == null) {
 		this.mode = '2004';
 		console.log('LMS not present - Created SCORM '+this.mode+' Debug interface.'); 
 		this.scorm_interface = new Debug_API();
 	} else {
+		// now test to see if the interface is 1.2 or 2004
+		if ("LMSCommit" in this.scorm_interface)
+			this.mode = "1.2";
+		else
+			this.mode = "2004";
+		
 		console.log('Found SCORM '+this.mode+' interface.'); 
 	}
 };
