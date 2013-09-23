@@ -13,25 +13,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 var Debug_API = function () {};
 // 2004 functions
-Debug_API.prototype.Initialize = function () { console.log('Debug_api:Initialize'); return true; };
-Debug_API.prototype.Terminate = function () { console.log('Debug_api:Terminate'); return true; };
-Debug_API.prototype.GetValue = function (nam) { console.log('Debug_api:GetValue: '+nam); return "lms-not-present"; };
-Debug_API.prototype.SetValue = function (nam,val) { console.log('Debug_api:SetValue: '+nam+'='+val); return ""; };
-Debug_API.prototype.Commit = function () { console.log('Debug_api:Commit'); return true; };
-Debug_API.prototype.GetLastError = function () { console.log('Debug_api:GetLastError (0)'); return 0; };
-Debug_API.prototype.GetErrorString = function (code) { console.log('Debug_api:GetErrorString: '+code); return "lms-not-present"; };
-Debug_API.prototype.GetDiagnostic = function (code) { console.log('Debug_api:GetDiagnostic: '+code); return "lms-not-present"; };
+Debug_API.prototype.Initialize = function () { console.log(' └ Debug_api:Initialize'); return true; };
+Debug_API.prototype.Terminate = function () { console.log(' └ Debug_api:Terminate'); return true; };
+Debug_API.prototype.GetValue = function (nam) { return "lms-not-present"; };
+Debug_API.prototype.SetValue = function (nam,val) { console.log(' ┌ Debug_api:SetValue: '+nam+'='+val); return "lms-not-present"; };
+Debug_API.prototype.Commit = function () { console.log(' └ Debug_api:Commit'); return true; };
+Debug_API.prototype.GetLastError = function () { return 0; };
+Debug_API.prototype.GetErrorString = function (code) { return ""; };
+Debug_API.prototype.GetDiagnostic = function (code) { return ""; };
 // 1.2 functions
-Debug_API.prototype.LMSInitialize = function () { console.log('Debug_api:LMSInitialize'); return true; };
-Debug_API.prototype.LMSTerminate = function () { console.log('Debug_api:LMSTerminate'); return true; };
-Debug_API.prototype.LMSGetValue = function (nam) { console.log('Debug_api:LMSGetValue: '+nam); return "lms-not-present"; };
-Debug_API.prototype.LMSSetValue = function (nam,val) { console.log('Debug_api:LMSSetValue: '+nam+'='+val); return ""; };
-Debug_API.prototype.LMSCommit = function () { console.log('Debug_api:LMSCommit'); return true; };
-Debug_API.prototype.LMSGetLastError = function () { console.log('Debug_api:LMSGetLastError (0)'); return 0; };
-Debug_API.prototype.LMSGetErrorString = function (code) { console.log('Debug_api:LMSGetErrorString: '+code); return "lms-not-present"; };
-Debug_API.prototype.LMSGetDiagnostic = function (code) { console.log('Debug_api:LMSGetDiagnostic: '+code); return "lms-not-present"; };
+Debug_API.prototype.LMSInitialize = function () { console.log(' └ Debug_api:LMSInitialize'); return true; };
+Debug_API.prototype.LMSTerminate = function () { console.log(' └ Debug_api:LMSTerminate'); return true; };
+Debug_API.prototype.LMSGetValue = function (nam) { return "lms-not-present"; };
+Debug_API.prototype.LMSSetValue = function (nam,val) { console.log(' ┌ Debug_api:LMSSetValue: '+nam+'='+val); return "lms-not-present"; };
+Debug_API.prototype.LMSCommit = function () { console.log(' └ Debug_api:Commit'); return true; };
+Debug_API.prototype.LMSGetLastError = function () { return 0; };
+Debug_API.prototype.LMSGetErrorString = function (code) { return ""; };
+Debug_API.prototype.LMSGetDiagnostic = function (code) { return ""; };
 
-var Scorm = function () {
+var Scorm = function (options) {
+	this.options = $.extend({}, {
+        pass_action: 'completed', // passed or completed
+		completed_threshold: 0.9, // percentage of pages required to complete
+		passing_score: 0.8 // percentage score required to pass
+    }, options);
+
 	this.scorm_interface = null;
 	// default used by debug interface
 	this.mode = null;
@@ -39,13 +45,14 @@ var Scorm = function () {
 	this.objectives = 0;
 	this.start_time = new Date().getTime() / 1000;
 	this.has_score = false;
-	this.pass_action = 'completed'; // passed or completed
+	this.is_debug = false;
 
 	// we need to search window, window.parent(s) and window.top.opener for either API or API_1484_11
 	this._search_for_api ( window );
 	
 	if (this.scorm_interface == null) {
 		this.mode = '2004';
+		this.is_debug = true;
 		console.log('LMS not present - Created SCORM '+this.mode+' Debug interface.'); 
 		this.scorm_interface = new Debug_API();
 	} else {
@@ -54,7 +61,6 @@ var Scorm = function () {
 			this.mode = "1.2";
 		else
 			this.mode = "2004";
-		
 		console.log('Found SCORM '+this.mode+' interface.'); 
 	}
 };
@@ -77,11 +83,11 @@ Scorm.prototype._search_for_api = function ( win ) {
 	try {
 		while (win != null && this.scorm_interface == null) {
 			// record the API if we've found it
-			if (win.API_1484_11) {
+			if (win.API_1484_11)
 				this.scorm_interface = win.API_1484_11;
-			} else if (win.API) {
+			else if (win.API)
 				this.scorm_interface = win.API;
-			}
+			
 			// now branch off to look at the window opener of this window.
 			if (win.opener != null && !win.opener.closed)
 				this._search_for_api ( win.opener );
@@ -99,15 +105,15 @@ Scorm.prototype._search_for_api = function ( win ) {
 };
 /* general API calls */
 Scorm.prototype.Check = function () {
-	var error = 0;
+	var error = 0, error_string = '';
 	if (this.mode == '2004') {
-		error = this.scorm_interface.GetLastError(); 
-		if (error) console.log( 'Error ('+error+'): '+this.scorm_interface.GetErrorString(error) );
+		error = parseInt(this.scorm_interface.GetLastError()); 
+		if (error) error_string = 'Error ('+error+'): '+this.scorm_interface.GetErrorString(error);
 	} else if (this.mode == '1.2') {
-		error = this.scorm_interface.LMSGetLastError(); 
-		if (error) console.log( 'Error ('+error+'): '+this.scorm_interface.LMSGetErrorString(error) );
+		error = parseInt(this.scorm_interface.LMSGetLastError()); 
+		if (error) error_string = 'Error ('+error+'): '+this.scorm_interface.LMSGetErrorString(error);
 	}
-	return error;
+	return { 'code': error, 'description': error_string };
 };
 Scorm.prototype.Initialize = function () { 
 	console.log('Scorm:Initialize');
@@ -117,11 +123,14 @@ Scorm.prototype.Initialize = function () {
 		this.scorm_interface.LMSInitialize('');
 	}
 	// check for errors
-	if (this.Check()==0) this.active = true;
+	if (this.Check()['code']==0) this.active = true;
 
 	// mark course as incomplete
 	this.SetCompletionStatus('incomplete');
-	
+	// set thresholds
+	this.SetCompletionThreshold( this.options.completed_threshold );
+	this.SetScoreThreshold( this.options.passing_score );
+
 	return this.active;
 };
 Scorm.prototype.Terminate = function () { 
@@ -132,31 +141,35 @@ Scorm.prototype.Terminate = function () {
 		this.scorm_interface.LMSFinish('');
 	}
 	// check for errors
-	if (this.Check()==0) this.active = false;
+	if (this.Check()['code']==0) this.active = false;
 };
 Scorm.prototype.Deactivate = function () { 
 	console.log('Scorm:Deactivate');
 	this.active = false;
 };
-
 Scorm.prototype.SetValue = function ( varname, value ) { 
 	if (this.active) {
-		console.log('Scorm:SetValue: '+varname+'='+value);
-		if (this.mode == '2004') this.scorm_interface.SetValue( varname, value );
-		else if (this.mode == '1.2') this.scorm_interface.LMSSetValue( varname, value );
+		var checkback;
+		if (this.mode == '2004') {
+			this.scorm_interface.SetValue( varname, value );
+			checkback = this.scorm_interface.GetValue( varname );
+		} else if (this.mode == '1.2') {
+			this.scorm_interface.LMSSetValue( varname, value );
+			checkback = this.scorm_interface.LMSGetValue( varname );
+		}
 		// make sure that worked
-		return this.Check();
-	} else {
-		console.log('Scorm:SetValue: ('+varname+') Ignored (LMS inactive)');
+		var error = this.Check();
+		console.log('Scorm:SetValue: '+varname+'='+value+'? '+(error['code']?error['description']:'Echo:'+checkback));
+		return error['code'];
 	}
 };
 Scorm.prototype.GetValue = function ( varname ) { 
 	if (this.active) {
-		console.log('Scorm:GetValue: '+varname);
-		if (this.mode == '2004') return this.scorm_interface.GetValue( varname );
-		else if (this.mode == '1.2') return this.scorm_interface.LMSGetValue( varname );
-	} else {
-		console.log('Scorm:GetValue: ('+varname+') Ignored (LMS inactive)');
+		var val;
+		if (this.mode == '2004') val = this.scorm_interface.GetValue( varname );
+		else if (this.mode == '1.2') val = this.scorm_interface.LMSGetValue( varname );
+		console.log('Scorm:GetValue: '+varname+'='+val);
+		return val;
 	}
 };
 Scorm.prototype.Commit = function () { 
@@ -169,14 +182,21 @@ Scorm.prototype.Commit = function () {
 };
 /* specific actions */
 /* being friendly */
-Scorm.prototype.GetLearnerName = function () { 
+Scorm.prototype.GetLearnerName = function () {
 	if (this.mode == '2004')
 		return this.GetValue('cmi.learner_name');
 	else if (this.mode == '1.2')
 		return this.GetValue('cmi.core.student_name');
 };
+/* being friendly */
+Scorm.prototype.GetLearnerID = function () {
+	if (this.mode == '2004')
+		return this.GetValue('cmi.learner_id');
+	else if (this.mode == '1.2')
+		return this.GetValue('cmi.core.student_id');
+};
 /* Browsing History */
-Scorm.prototype.GetLocation = function () { 
+Scorm.prototype.GetLocation = function () {
 	if (this.mode == '2004')
 		return this.GetValue('cmi.location');
 	else if (this.mode == '1.2')
@@ -188,6 +208,36 @@ Scorm.prototype.SetLocation = function ( url ) {
 	else if (this.mode == '1.2')
 		return this.SetValue('cmi.core.lesson_location', url);
 };
+/* Progress */
+Scorm.prototype.GetProgress = function () { 
+	if (this.mode == '2004')
+		return this.GetValue('cmi.progress_measure');
+};
+Scorm.prototype.SetProgress = function ( progress ) { 
+	if (this.mode == '2004')
+		return this.SetValue('cmi.progress_measure', progress);
+};
+/* Completion Threshold */
+Scorm.prototype.GetCompletionThreshold = function () { 
+	if (this.mode == '2004')
+		return this.GetValue('cmi.progress_measure');
+	return false;
+};
+Scorm.prototype.SetCompletionThreshold = function ( threshold ) { 
+	if (this.mode == '2004')
+		this.SetValue('cmi.completion_threshold', threshold);
+};
+/* Score Threshold */
+Scorm.prototype.GetScoreThreshold = function () { 
+	if (this.mode == '2004')
+		return this.GetValue('cmi.progress_measure');
+	return false;
+};
+Scorm.prototype.SetScoreThreshold = function ( threshold ) { 
+	if (this.mode == '2004')
+		this.SetValue('cmi.scaled_passing_score', threshold);
+};
+
 Scorm.prototype.GetCompletionStatus = function () { 
 	if (this.mode == '2004') {
 		// 2004 doesn't need any fixing
@@ -230,7 +280,7 @@ Scorm.prototype.SetOutcome = function ( outcome ) {
 		// session time
 		this.SetValue('cmi.session_time',this._get_session_time('2004'));
 	} else if (this.mode == '1.2') {
-		if (this.has_score && this.pass_action == 'passed') {
+		if (this.has_score && this.options.pass_action == 'passed') {
 			// complete and outcome are stored in the same variable, so we just use completion status
 			if (outcome == 'passed')
 				this.SetCompletionStatus('passed');
@@ -260,6 +310,7 @@ Scorm.prototype.SetScore = function (score, min, max) {
 	this.has_score = true;
 	if (this.mode == '2004') {
 		this.SetValue('cmi.score.raw',score);
+		this.SetValue('cmi.score.scaled',score);
 		this.SetValue('cmi.score.min',min);
 		this.SetValue('cmi.score.max',max);
 	} else if (this.mode == '1.2') {
@@ -271,12 +322,15 @@ Scorm.prototype.SetScore = function (score, min, max) {
 /* record an objective in the course */
 Scorm.prototype.SetObjective = function ( objective_name, outcome, score, min, max ) { 
 	this.SetValue('cmi.objectives.'+this.objectives+'.id', objective_name);
-	this.SetValue('cmi.objectives.'+this.objectives+'.status', (outcome=='passed'?'passed':'failed'));
-	this.SetValue('cmi.objectives.'+this.objectives+'.raw', (score?score:0));
-	this.SetValue('cmi.objectives.'+this.objectives+'.max', (min?min:0));
-	this.SetValue('cmi.objectives.'+this.objectives+'.min', (max?max:100));
+	this.SetValue('cmi.objectives.'+this.objectives+'.score.raw', (score?score:0));
+	this.SetValue('cmi.objectives.'+this.objectives+'.score.min', (min?min:0));
+	this.SetValue('cmi.objectives.'+this.objectives+'.score.max', (max?max:100));
 	if (this.mode == '2004') {
 		this.SetValue('cmi.objectives.'+this.objectives+'.completion_status','completed');
+		if (outcome=='passed'||outcome=='failed') this.SetValue('cmi.objectives.'+this.objectives+'.success_status', outcome);
+	} else {
+		if (outcome=='passed'||outcome=='failed') this.SetValue('cmi.objectives.'+this.objectives+'.status', outcome);
+		else this.SetValue('cmi.objectives.'+this.objectives+'.status', 'completed');
 	}
 	// increment
 	this.objectives++;
