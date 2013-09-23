@@ -220,7 +220,7 @@ Scorm.prototype.SetProgress = function ( progress ) {
 /* Completion Threshold */
 Scorm.prototype.GetCompletionThreshold = function () { 
 	if (this.mode == '2004')
-		return this.GetValue('cmi.progress_measure');
+		return this.GetValue('cmi.completion_threshold');
 	return false;
 };
 Scorm.prototype.SetCompletionThreshold = function ( threshold ) { 
@@ -310,7 +310,7 @@ Scorm.prototype.SetScore = function (score, min, max) {
 	this.has_score = true;
 	if (this.mode == '2004') {
 		this.SetValue('cmi.score.raw',score);
-		this.SetValue('cmi.score.scaled',score);
+		//this.SetValue('cmi.score.scaled',score);
 		this.SetValue('cmi.score.min',min);
 		this.SetValue('cmi.score.max',max);
 	} else if (this.mode == '1.2') {
