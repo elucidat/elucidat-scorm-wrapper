@@ -5,6 +5,8 @@ Licensed under the MIT license
 
 Copyright (c) 2013 Elucidat Ltd
 
+Version 1.0.1
+
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -15,8 +17,8 @@ var Debug_API = function () {};
 // 2004 functions
 Debug_API.prototype.Initialize = function () { console.log(' └ Debug_api:Initialize'); return true; };
 Debug_API.prototype.Terminate = function () { console.log(' └ Debug_api:Terminate'); return true; };
-Debug_API.prototype.GetValue = function (nam) { return "lms-not-present"; };
-Debug_API.prototype.SetValue = function (nam,val) { console.log(' ┌ Debug_api:SetValue: '+nam+'='+val); return "lms-not-present"; };
+Debug_API.prototype.GetValue = function (nam) { return ''; };
+Debug_API.prototype.SetValue = function (nam,val) { console.log(' ┌ Debug_api:SetValue: '+nam+'='+val); return ''; };
 Debug_API.prototype.Commit = function () { console.log(' └ Debug_api:Commit'); return true; };
 Debug_API.prototype.GetLastError = function () { return 0; };
 Debug_API.prototype.GetErrorString = function (code) { return ""; };
@@ -24,8 +26,8 @@ Debug_API.prototype.GetDiagnostic = function (code) { return ""; };
 // 1.2 functions
 Debug_API.prototype.LMSInitialize = function () { console.log(' └ Debug_api:LMSInitialize'); return true; };
 Debug_API.prototype.LMSTerminate = function () { console.log(' └ Debug_api:LMSTerminate'); return true; };
-Debug_API.prototype.LMSGetValue = function (nam) { return "lms-not-present"; };
-Debug_API.prototype.LMSSetValue = function (nam,val) { console.log(' ┌ Debug_api:LMSSetValue: '+nam+'='+val); return "lms-not-present"; };
+Debug_API.prototype.LMSGetValue = function (nam) { return ''; };
+Debug_API.prototype.LMSSetValue = function (nam,val) { console.log(' ┌ Debug_api:LMSSetValue: '+nam+'='+val); return ''; };
 Debug_API.prototype.LMSCommit = function () { console.log(' └ Debug_api:Commit'); return true; };
 Debug_API.prototype.LMSGetLastError = function () { return 0; };
 Debug_API.prototype.LMSGetErrorString = function (code) { return ""; };
@@ -128,8 +130,8 @@ Scorm.prototype.Initialize = function () {
 	// mark course as incomplete
 	this.SetCompletionStatus('incomplete');
 	// set thresholds
-	this.SetCompletionThreshold( this.options.completed_threshold );
-	this.SetScoreThreshold( this.options.passing_score );
+	//	this.SetCompletionThreshold( this.options.completed_threshold );
+	//	this.SetScoreThreshold( this.options.passing_score );
 
 	return this.active;
 };
@@ -207,6 +209,13 @@ Scorm.prototype.SetLocation = function ( url ) {
 		return this.SetValue('cmi.location', url);
 	else if (this.mode == '1.2')
 		return this.SetValue('cmi.core.lesson_location', url);
+};
+/* Suspend data */
+Scorm.prototype.GetSuspendData = function () {	
+	return this.GetValue('cmi.suspend_data');
+};
+Scorm.prototype.SetSuspendData = function ( data ) { 
+	return this.SetValue('cmi.suspend_data', data);
 };
 /* Progress */
 Scorm.prototype.GetProgress = function () { 
