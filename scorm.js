@@ -127,8 +127,10 @@ Scorm.prototype.Initialize = function () {
 	// check for errors
 	if (this.Check()['code']==0) this.active = true;
 
-	// mark course as incomplete
-	this.SetCompletionStatus('incomplete');
+	// mark course as incomplete if it has not been attempted
+	if (this.GetCompletionStatus() == 'not attempted')
+		this.SetCompletionStatus('incomplete');
+	
 	// set thresholds
 	//	this.SetCompletionThreshold( this.options.completed_threshold );
 	//	this.SetScoreThreshold( this.options.passing_score );
