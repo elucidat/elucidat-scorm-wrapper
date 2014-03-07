@@ -35,9 +35,7 @@ Debug_API.prototype.LMSGetDiagnostic = function (code) { return ""; };
 
 var Scorm = function (options) {
 	this.options = $.extend({}, {
-        pass_action: 'completed', // passed or completed
-		completed_threshold: 0.9, // percentage of pages required to complete
-		passing_score: 0.8 // percentage score required to pass
+		debug_mode: '2004'
     }, options);
 
 	this.scorm_interface = null;
@@ -53,7 +51,7 @@ var Scorm = function (options) {
 	this._search_for_api ( window );
 	
 	if (this.scorm_interface == null) {
-		this.mode = '2004';
+		this.mode = this.options.debug_mode;
 		this.is_debug = true;
 		console.log('LMS not present - Created SCORM '+this.mode+' Debug interface.'); 
 		this.scorm_interface = new Debug_API();
@@ -128,12 +126,9 @@ Scorm.prototype.Initialize = function () {
 	if (this.Check()['code']==0) this.active = true;
 
 	// mark course as incomplete if it has not been attempted
-	if (this.GetCompletionStatus() == 'not attempted')
-		this.SetCompletionStatus('incomplete');
-	
-	// set thresholds
-	//	this.SetCompletionThreshold( this.options.completed_threshold );
-	//	this.SetScoreThreshold( this.options.passing_score );
+	var status = this.GetCompletionStatus();
+	if (status == 'not attempted' || !status)
+		this.SetIncomplete();
 
 	return this.active;
 };
@@ -268,7 +263,7 @@ Scorm.prototype.SetCompletionStatus = function ( v ) {
 	else if (this.mode == '1.2')
 		return this.SetValue('cmi.core.lesson_status', v);
 };
-Scorm.prototype.GetOutcome = function () { 
+Scorm.prototype.GetResult = function () { 
 	if (this.mode == '2004') {
 		// 2004 doesn't need any fixing
 		return this.GetValue('cmi.success_status');
@@ -279,44 +274,41 @@ Scorm.prototype.GetOutcome = function () {
 		return 'unknown';
 	}
 };
-Scorm.prototype.SetOutcome = function ( outcome ) { 
+Scorm.prototype.SetResult = function ( outcome ) { 
 	if (this.mode == '2004') {
-		// 2004 doesn't need any fixing
-		this.SetCompletionStatus('completed');
 		if (outcome == 'passed') {
 			this.SetValue('cmi.success_status','passed');
 		} else if (outcome == 'failed') {
 			this.SetValue('cmi.success_status','failed');
 		}
-		// session time
-		this.SetValue('cmi.session_time',this._get_session_time('2004'));
 	} else if (this.mode == '1.2') {
-		if (this.has_score && this.options.pass_action == 'passed') {
-			// complete and outcome are stored in the same variable, so we just use completion status
-			if (outcome == 'passed')
-				this.SetCompletionStatus('passed');
-			else if (outcome == 'failed') 
-				this.SetCompletionStatus('failed');
-		} else {
-			this.SetCompletionStatus('completed');
-		}
-		// session time
-		this.SetValue('cmi.core.session_time',this._get_session_time('1.2'));
+		// complete and outcome are stored in the same variable in 1.2, so we just use completion status
+		if (outcome == 'passed')
+			this.SetCompletionStatus('passed');
+		else if (outcome == 'failed') 
+			this.SetCompletionStatus('failed');
 	}
 	// this one is important so save
 	this.Commit();
 };
 /* Complete the course - maybe unnecessary */
-Scorm.prototype.Passed = function () { 
+Scorm.prototype.SetPassed = function () { 
 	// set score
-	// mark as complete
-	this.SetOutcome( 'passed' );
+	this.SetResult( 'passed' );
 };
-Scorm.prototype.Failed = function () { 
+Scorm.prototype.SetFailed = function () { 
 	// set score
-	// mark as complete
-	this.SetOutcome( 'failed' );
+	this.SetResult( 'failed' );
 };
+Scorm.prototype.SetCompleted = function () { 
+	// set score
+	this.SetCompletionStatus( 'completed' );
+};
+Scorm.prototype.SetIncomplete = function () { 
+	// set score
+	this.SetCompletionStatus( 'incomplete' );
+};
+
 Scorm.prototype.SetScore = function (score, min, max) { 
 	this.has_score = true;
 	if (this.mode == '2004') {
