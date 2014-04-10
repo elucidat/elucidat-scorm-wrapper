@@ -25,7 +25,7 @@ Debug_API.prototype.GetErrorString = function (code) { return ""; };
 Debug_API.prototype.GetDiagnostic = function (code) { return ""; };
 // 1.2 functions
 Debug_API.prototype.LMSInitialize = function () { console.log(' └ Debug_api:LMSInitialize'); return true; };
-Debug_API.prototype.LMSTerminate = function () { console.log(' └ Debug_api:LMSTerminate'); return true; };
+Debug_API.prototype.LMSFinish = function () { console.log(' └ Debug_api:LMSFinish'); return true; };
 Debug_API.prototype.LMSGetValue = function (nam) { return ''; };
 Debug_API.prototype.LMSSetValue = function (nam,val) { console.log(' ┌ Debug_api:LMSSetValue: '+nam+'='+val); return ''; };
 Debug_API.prototype.LMSCommit = function () { console.log(' └ Debug_api:Commit'); return true; };
