@@ -3,9 +3,6 @@ Elucidat SCORM API wrapper
 
 Scorm API Wrapper for the Elucidat E-learning Rapid Authoring Tool.
 
-This is a pre-release version and so we are not giving a lot of information - yet.
-
-
 
 License
 ----------
