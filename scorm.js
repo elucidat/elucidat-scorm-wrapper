@@ -88,7 +88,7 @@ Scorm.prototype._format_time = function ( session_time ) {
 	//	return 'PT'+hours+'H'+minutes+'M'+session_time+'S';
 	//} else {
 	// scorm 1.2
-	return pad(hours,4)+':'+pad(minutes,2)+':'+pad(session_time,2);
+	return pad(hours,2)+':'+pad(minutes,2)+':'+pad(session_time,2);
 	//}
 
 }
@@ -159,19 +159,26 @@ Scorm.prototype.Deactivate = function () {
 	console.log('Scorm:Deactivate');
 	this.active = false;
 };
-Scorm.prototype.SetValue = function ( varname, value ) { 
+Scorm.prototype.SetValue = function ( varname, value, skip_checking ) { 
 	if (this.active) {
 		var checkback;
 		if (this.mode == '2004') {
 			this.scorm_interface.SetValue( varname, value );
-			checkback = this.scorm_interface.GetValue( varname );
+			if (!skip_checking)
+				checkback = this.scorm_interface.GetValue( varname );
 		} else if (this.mode == '1.2') {
 			this.scorm_interface.LMSSetValue( varname, value );
-			checkback = this.scorm_interface.LMSGetValue( varname );
+			if (!skip_checking)
+				checkback = this.scorm_interface.LMSGetValue( varname );
 		}
 		// make sure that worked
 		var error = this.Check();
-		console.log('Scorm:SetValue: '+varname+'='+value+'? '+(error['code']?error['description']:'Echo:'+checkback));
+		var feedback = 'Scorm:SetValue: '+varname+'='+value;
+
+		if (!skip_checking)
+			feedback += '? '+(error['code']?error['description']: 'Echo:'+checkback);
+
+		console.log(feedback);
 		return error['code'];
 	}
 };
@@ -260,9 +267,9 @@ Scorm.prototype.SetSessionTime = function ( session_time ) { // session_time in 
 	if (!session_time)
 		session_time = ( new Date().getTime() ) - this.start_time;
 	if (this.mode == '2004')
-		return this.SetValue('cmi.session_time', this._format_time( session_time ) );
+		return this.SetValue('cmi.session_time', this._format_time( session_time ), true );
 	else if (this.mode == '1.2')
-		return this.SetValue('cmi.core.session_time', this._format_time( session_time ) );
+		return this.SetValue('cmi.core.session_time', this._format_time( session_time ), true );
 };
 Scorm.prototype.GetTotalTime = function () { 
 	if (this.mode == '2004')
