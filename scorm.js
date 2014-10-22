@@ -43,7 +43,8 @@ var Scorm = function (options) {
 	this.mode = null;
 	this.active = false;
 	this.objectives = 0;
-	this.start_time = new Date().getTime() / 1000;
+	this.interactions = 0;
+	this.start_time = new Date().getTime();
 	this.has_score = false;
 	this.is_debug = false;
 
@@ -64,20 +65,32 @@ var Scorm = function (options) {
 		console.log('Found SCORM '+this.mode+' interface.'); 
 	}
 };
-Scorm.prototype._get_session_time = function ( mode ) {
+Scorm.prototype._format_time = function ( session_time ) {
 	function pad(num, size) {
     	var s = "0000" + new String(Math.round(num));
     	return s.substr(s.length-size);
 	}
-	var session_time = ( new Date().getTime() / 1000 ) - this.start_time;
+	// convert session time to seconds
+	session_time /= 1000;
+
 	// scorm 2004
-	if (mode == '2004') return Math.round(session_time);
-	// scorm 1.2
+	if (this.mode == '2004')
+		return Math.round(session_time);
+
+	// split out the time parts
 	var hours = Math.floor(session_time / 3600);
 		session_time = session_time - (hours * 3600);
 	var minutes = Math.floor(session_time / 60);
 	var session_time = session_time - (minutes * 60);
+
+	//if (this.mode == '2004') {
+		// scorm 2004 - this is kept for now in case - http://www.ostyn.com/standards/scorm/samples/ISOTimeForSCORM.htm
+	//	return 'PT'+hours+'H'+minutes+'M'+session_time+'S';
+	//} else {
+	// scorm 1.2
 	return pad(hours,4)+':'+pad(minutes,2)+':'+pad(session_time,2);
+	//}
+
 }
 Scorm.prototype._search_for_api = function ( win ) {
 	try {
@@ -243,7 +256,21 @@ Scorm.prototype.SetScoreThreshold = function ( threshold ) {
 	if (this.mode == '2004')
 		this.SetValue('cmi.scaled_passing_score', threshold);
 };
-
+Scorm.prototype.SetSessionTime = function ( session_time ) { // session_time in javascript format - ie - milliseconds
+	if (!session_time)
+		session_time = ( new Date().getTime() ) - this.start_time;
+	if (this.mode == '2004')
+		return this.SetValue('cmi.session_time', this._format_time( session_time ) );
+	else if (this.mode == '1.2')
+		return this.SetValue('cmi.core.session_time', this._format_time( session_time ) );
+};
+Scorm.prototype.GetTotalTime = function () { 
+	if (this.mode == '2004')
+		return this.GetValue('cmi.total_time');
+	else if (this.mode == '1.2')
+		return this.GetValue('cmi.core.total_time');
+	return false;
+};
 Scorm.prototype.GetCompletionStatus = function () { 
 	if (this.mode == '2004') {
 		// 2004 doesn't need any fixing
