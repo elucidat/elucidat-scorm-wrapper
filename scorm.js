@@ -42,8 +42,8 @@ var Scorm = function (options) {
 	// default used by debug interface
 	this.mode = null;
 	this.active = false;
-	this.objectives = 0;
-	this.interactions = 0;
+	this.objectives = [];
+	this.interactions = [];
 	this.start_time = new Date().getTime();
 	this.has_score = false;
 	this.is_debug = false;
@@ -357,18 +357,62 @@ Scorm.prototype.SetScore = function (score, min, max) {
 	}
 };
 /* record an objective in the course */
-Scorm.prototype.SetObjective = function ( objective_name, outcome, score, min, max ) { 
-	this.SetValue('cmi.objectives.'+this.objectives+'.id', objective_name);
-	this.SetValue('cmi.objectives.'+this.objectives+'.score.raw', (score?score:0));
-	this.SetValue('cmi.objectives.'+this.objectives+'.score.min', (min?min:0));
-	this.SetValue('cmi.objectives.'+this.objectives+'.score.max', (max?max:100));
-	if (this.mode == '2004') {
-		this.SetValue('cmi.objectives.'+this.objectives+'.completion_status','completed');
-		if (outcome=='passed'||outcome=='failed') this.SetValue('cmi.objectives.'+this.objectives+'.success_status', outcome);
-	} else {
-		if (outcome=='passed'||outcome=='failed') this.SetValue('cmi.objectives.'+this.objectives+'.status', outcome);
-		else this.SetValue('cmi.objectives.'+this.objectives+'.status', 'completed');
+Scorm.prototype.SetObjective = function ( objective_name, outcome, score, min, max, description ) { 
+
+	var ob_id = this.objectives.indexOf( objective_name );
+	if (ob_id == -1) {
+		// init if not exists already
+		ob_id = this.objectives.length;
+
+		this.SetValue('cmi.objectives.'+ob_id+'.id', objective_name);
+		if (this.mode == '2004') this.SetValue('cmi.objectives.'+ob_id+'.description', description);
+		// increment
+		this.objectives.push(objective_name);
+		// init score
+		this.SetValue('cmi.objectives.'+ob_id+'.score.min', (min?min:0));
+		this.SetValue('cmi.objectives.'+ob_id+'.score.max', (max?max:100));
 	}
-	// increment
-	this.objectives++;
+	// always do scoring
+	this.SetValue('cmi.objectives.'+ob_id+'.score.raw', (score?score:0));
+
+	if (this.mode == '2004') {
+		this.SetValue('cmi.objectives.'+ob_id+'.completion_status','completed');
+		if (outcome=='passed'||outcome=='failed') this.SetValue('cmi.objectives.'+ob_id+'.success_status', outcome);
+	} else {
+		if (outcome=='passed'||outcome=='failed') this.SetValue('cmi.objectives.'+ob_id+'.status', outcome);
+		else this.SetValue('cmi.objectives.'+ob_id+'.status', 'completed');
+	}
 };
+/* record an objective in the course */
+Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, outcome, learner_response, description ) { 
+
+	var int_id = this.interactions.indexOf( interaction_name );
+	if (int_id == -1) {
+		// init if not exists already
+		int_id = this.interactions.length;
+
+		this.SetValue('cmi.interactions.'+int_id+'.id', interaction_name);
+		this.SetValue('cmi.interactions.'+int_id+'.objectives.0.id', objective_name);
+		if (this.mode == '2004') this.SetValue('cmi.interactions.'+int_id+'.description', description);
+		// increment
+		this.interactions.push(interaction_name);
+	}
+
+	if (learner_response) {
+		if (this.mode == '2004')
+			this.SetValue('cmi.objectives.'+int_id+'.learner_response', learner_response);
+		else
+			this.SetValue('cmi.objectives.'+int_id+'.student_response', learner_response);
+	}
+
+	if (outcome=='passed' || outcome=='completed') {
+		this.SetValue('cmi.interactions.'+int_id+'.result', 'correct');
+
+	} else if (outcome=='failed') {
+		if (this.mode == '2004')
+			this.SetValue('cmi.interactions.'+int_id+'.result', 'incorrect');
+		else
+			this.SetValue('cmi.interactions.'+int_id+'.result', 'wrong');
+	}
+};
+
