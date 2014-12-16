@@ -232,7 +232,9 @@ Scorm.prototype.GetSuspendData = function () {
 	return this.GetValue('cmi.suspend_data');
 };
 Scorm.prototype.SetSuspendData = function ( data ) { 
-	return this.SetValue('cmi.suspend_data', data);
+	this.SetValue('cmi.suspend_data', data);
+	// this one is important so save now
+	this.Commit();
 };
 /* Progress */
 Scorm.prototype.GetProgress = function () { 
@@ -293,9 +295,11 @@ Scorm.prototype.GetCompletionStatus = function () {
 Scorm.prototype.SetCompletionStatus = function ( v ) { 
 	// and send
 	if (this.mode == '2004')
-		return this.SetValue('cmi.completion_status', v);
+		this.SetValue('cmi.completion_status', v);
 	else if (this.mode == '1.2')
-		return this.SetValue('cmi.core.lesson_status', v);
+		this.SetValue('cmi.core.lesson_status', v);
+	// this one is important so save now
+	this.Commit();
 };
 Scorm.prototype.GetResult = function () { 
 	if (this.mode == '2004') {
@@ -322,7 +326,7 @@ Scorm.prototype.SetResult = function ( outcome ) {
 		else if (outcome == 'failed') 
 			this.SetCompletionStatus('failed');
 	}
-	// this one is important so save
+	// this one is important so save now
 	this.Commit();
 };
 /* Complete the course - maybe unnecessary */
@@ -355,6 +359,8 @@ Scorm.prototype.SetScore = function (score, min, max) {
 		this.SetValue('cmi.core.score.min',min);
 		this.SetValue('cmi.core.score.max',max);
 	}
+	// this one is important so save now
+	this.Commit();
 };
 /* record an objective in the course */
 Scorm.prototype.SetObjective = function ( objective_name, outcome, score, min, max, description ) { 
