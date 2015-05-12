@@ -406,9 +406,9 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 
 	if (learner_response) {
 		if (this.mode == '2004')
-			this.SetValue('cmi.objectives.'+int_id+'.learner_response', learner_response);
+			this.SetValue('cmi.interactions.'+int_id+'.learner_response', learner_response);
 		else
-			this.SetValue('cmi.objectives.'+int_id+'.student_response', learner_response);
+			this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response);
 	}
 
 	if (outcome=='passed' || outcome=='completed') {
