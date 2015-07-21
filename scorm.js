@@ -152,6 +152,7 @@ Scorm.prototype.Terminate = function () {
 	} else if (this.mode == '1.2') {
 		this.scorm_interface.LMSFinish('');
 	}
+
 	// check for errors
 	if (this.Check()['code']==0) this.active = false;
 };
@@ -171,6 +172,9 @@ Scorm.prototype.SetValue = function ( varname, value, skip_checking ) {
 			if (!skip_checking)
 				checkback = this.scorm_interface.LMSGetValue( varname );
 		}
+		// we are also going to send as a postMessage to the top window
+		top.postMessage( varname+'='+value, '*' );
+
 		// make sure that worked
 		var error = this.Check();
 		var feedback = 'Scorm:SetValue: '+varname+'='+value;
