@@ -173,7 +173,8 @@ Scorm.prototype.SetValue = function ( varname, value, skip_checking ) {
 				checkback = this.scorm_interface.LMSGetValue( varname );
 		}
 		// we are also going to send as a postMessage to the top window
-		top.postMessage( varname+'='+value, '*' );
+		if (top['postMessage'])
+			top.postMessage( varname+'='+value, '*' );
 
 		// make sure that worked
 		var error = this.Check();
