@@ -140,7 +140,7 @@ Scorm.prototype.Initialize = function () {
 
 	// mark course as incomplete if it has not been attempted
 	var status = this.GetCompletionStatus();
-	if (status == 'not attempted' || !status)
+	if (!status || status == 'not attempted' || status == 'unknown')
 		this.SetIncomplete();
 
 	return this.active;
