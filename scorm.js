@@ -35,7 +35,7 @@ Debug_API.prototype.LMSGetDiagnostic = function (code) { return ""; };
 
 var Scorm = function (options) {
 	this.options = $.extend({}, {
-		debug_mode: '2004'
+		debug_mode: '1.2'
     }, options);
 
 	this.scorm_interface = null;
@@ -413,17 +413,20 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 		if (this.mode == '2004')
 			this.SetValue('cmi.interactions.'+int_id+'.learner_response', learner_response);
 		else
-			this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response);
+			this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response, true);
 	}
 
 	if (outcome=='passed' || outcome=='completed') {
-		this.SetValue('cmi.interactions.'+int_id+'.result', 'correct');
+		if (this.mode == '2004')
+			this.SetValue('cmi.interactions.'+int_id+'.result', 'correct');
+		else
+			this.SetValue('cmi.interactions.'+int_id+'.result', 'correct', true);
 
 	} else if (outcome=='failed') {
 		if (this.mode == '2004')
 			this.SetValue('cmi.interactions.'+int_id+'.result', 'incorrect');
 		else
-			this.SetValue('cmi.interactions.'+int_id+'.result', 'wrong');
+			this.SetValue('cmi.interactions.'+int_id+'.result', 'wrong', true);
 	}
 };
 
