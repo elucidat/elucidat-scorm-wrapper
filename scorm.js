@@ -35,7 +35,7 @@ Debug_API.prototype.LMSGetDiagnostic = function (code) { return ""; };
 
 var Scorm = function (options) {
 	this.options = $.extend({}, {
-		debug_mode: '1.2'
+		debug_mode: '2004'
     }, options);
 
 	this.scorm_interface = null;
