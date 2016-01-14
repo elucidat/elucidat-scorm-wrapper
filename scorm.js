@@ -232,6 +232,19 @@ Scorm.prototype.SetLocation = function ( url ) {
 	else if (this.mode == '1.2')
 		return this.SetValue('cmi.core.lesson_location', url);
 };
+/* Exit */
+Scorm.prototype.GetExit = function () {
+	if (this.mode == '2004')
+		return this.GetValue('cmi.exit');
+	else if (this.mode == '1.2')
+		return this.GetValue('cmi.core.exit');
+};
+Scorm.prototype.SetExit = function ( value ) { 
+	if (this.mode == '2004')
+		return this.SetValue('cmi.exit', value);
+	else if (this.mode == '1.2')
+		return this.SetValue('cmi.core.exit', value);
+};
 /* Suspend data */
 Scorm.prototype.GetSuspendData = function () {	
 	return this.GetValue('cmi.suspend_data');
@@ -426,4 +439,3 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 			this.SetValue('cmi.interactions.'+int_id+'.result', 'wrong', skip_checking);
 	}
 };
-
