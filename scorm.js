@@ -74,8 +74,8 @@ Scorm.prototype._format_time = function ( session_time ) {
 	session_time /= 1000;
 
 	// scorm 2004
-	if (this.mode == '2004')
-		return Math.round(session_time);
+	//if (this.mode == '2004')
+	//	return Math.round(session_time);
 
 	// split out the time parts
 	var hours = Math.floor(session_time / 3600);
@@ -83,13 +83,13 @@ Scorm.prototype._format_time = function ( session_time ) {
 	var minutes = Math.floor(session_time / 60);
 	var session_time = session_time - (minutes * 60);
 
-	//if (this.mode == '2004') {
+	if (this.mode == '2004') {
 		// scorm 2004 - this is kept for now in case - http://www.ostyn.com/standards/scorm/samples/ISOTimeForSCORM.htm
-	//	return 'PT'+hours+'H'+minutes+'M'+session_time+'S';
-	//} else {
-	// scorm 1.2
-	return pad(hours,2)+':'+pad(minutes,2)+':'+pad(session_time,2);
-	//}
+		return 'PT'+(hours?hours+'H':'')+(minutes?minutes+'M':'')+Math.round(session_time)+'S';
+	} else {
+		// scorm 1.2
+		return pad(hours,2)+':'+pad(minutes,2)+':'+pad(session_time,2);
+	}
 
 }
 Scorm.prototype._search_for_api = function ( win ) {
