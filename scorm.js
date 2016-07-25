@@ -439,3 +439,21 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 			this.SetValue('cmi.interactions.'+int_id+'.result', 'wrong', skip_checking);
 	}
 };
+
+Scorm.prototype.GetLanguage = function() {
+	var code = null;
+	if (this.mode == '2004')
+		code = this.GetValue('cmi.learner_preference.language');
+	else if (this.mode == '1.2')
+		code = this.GetValue('cmi.student_preference.language');
+	if ( code )
+		code = code.toLowerCase().trim();
+	return code;
+}
+
+Scorm.prototype.SetLanguage = function( value ) {
+	if (this.mode == '2004')
+		return this.SetValue('cmi.learner_preference.language', value );
+	else if (this.mode == '1.2')
+		return this.SetValue('cmi.student_preference.language', value );
+}
