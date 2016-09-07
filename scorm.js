@@ -53,6 +53,15 @@ var Scorm = function (options) {
 	
 	if (this.scorm_interface == null) {
 		this.mode = this.options.debug_mode;
+		
+		// if we have the scorm_mode variable then 
+		if (scorm_mode !== undefined) {
+			// if it's a string
+			if(typeof(scorm_mode) === 'string') {
+				// set the mode to the scorm_mode value passed through
+				this.mode = scorm_mode;
+			}
+		}
 		this.is_debug = true;
 		console.log('LMS not present - Created SCORM '+this.mode+' Debug interface.'); 
 		this.scorm_interface = new Debug_API();
@@ -96,10 +105,12 @@ Scorm.prototype._search_for_api = function ( win ) {
 	try {
 		while (win != null && this.scorm_interface == null) {
 			// record the API if we've found it
-			if (win.API_1484_11)
-				this.scorm_interface = win.API_1484_11;
-			else if (win.API)
+			// if we have win.API first - so if both are present we opt for win.API
+			if (win.API) {
 				this.scorm_interface = win.API;
+			} else if (win.API_1484_11) {
+				this.scorm_interface = win.API_1484_11;
+			}
 			
 			// now branch off to look at the window opener of this window.
 			if (win.opener != null && !win.opener.closed)
