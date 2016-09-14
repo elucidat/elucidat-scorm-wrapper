@@ -53,15 +53,16 @@ var Scorm = function (options) {
 	
 	if (this.scorm_interface == null) {
 		this.mode = this.options.debug_mode;
-		
-		// if we have the scorm_mode variable then 
-		if (scorm_mode !== undefined) {
+		// if we have the scorm_mode variable then
+		/* -- assess impact on BMJ before adding
+		if (window['default_scorm_mode'] && default_scorm_mode !== undefined) {
 			// if it's a string
-			if(typeof(scorm_mode) === 'string') {
+			if(typeof(default_scorm_mode) === 'string') {
 				// set the mode to the scorm_mode value passed through
-				this.mode = scorm_mode;
+				this.mode = default_scorm_mode;
 			}
 		}
+		*/
 		this.is_debug = true;
 		console.log('LMS not present - Created SCORM '+this.mode+' Debug interface.'); 
 		this.scorm_interface = new Debug_API();
