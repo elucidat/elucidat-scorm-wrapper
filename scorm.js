@@ -413,7 +413,10 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 	}
 
 	if (learner_response) {
-		this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response, skip_checking);
+        if (this.mode == '2004')
+			this.SetValue('cmi.interactions.'+int_id+'.learner_response', learner_response);
+		else
+			this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response, skip_checking);
 	}
 
 	if (outcome=='passed' || outcome=='completed') {
@@ -426,4 +429,3 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 			this.SetValue('cmi.interactions.'+int_id+'.result', 'wrong', skip_checking);
 	}
 };
-
