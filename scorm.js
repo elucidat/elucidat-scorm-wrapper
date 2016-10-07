@@ -395,7 +395,7 @@ Scorm.prototype.SetObjective = function ( objective_name, outcome, score, min, m
 	}
 };
 /* record an objective in the course */
-Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, outcome, learner_response, description ) { 
+Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, outcome, learner_response, description, interaction_type ) { 
 
 	var int_id = this.interactions.indexOf( interaction_name );
 	var skip_checking = (this.mode == '1.2' ? true : false);
@@ -406,14 +406,16 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 
 		this.SetValue('cmi.interactions.'+int_id+'.id', interaction_name, skip_checking);
 		this.SetValue('cmi.interactions.'+int_id+'.objectives.0.id', objective_name, skip_checking);
-		if (this.mode == '2004') 
+		if (this.mode == '2004') {
 			this.SetValue('cmi.interactions.'+int_id+'.description', description);
+            this.SetValue('cmi.interactions.'+int_id+'.type', interaction_type);
+        }
 		// increment
 		this.interactions.push(interaction_name);
 	}
 
 	if (learner_response) {
-        if (this.mode == '2004')
+        if (this.mode == '2004' && interaction_type)
 			this.SetValue('cmi.interactions.'+int_id+'.learner_response', learner_response);
 		else
 			this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response, skip_checking);
