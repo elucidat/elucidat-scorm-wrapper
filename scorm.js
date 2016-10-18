@@ -395,7 +395,7 @@ Scorm.prototype.SetObjective = function ( objective_name, outcome, score, min, m
 	}
 };
 /* record an objective in the course */
-Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, outcome, learner_response, description, interaction_type ) { 
+Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, outcome, learner_response, description, interaction_type, correct_response_pattern ) { 
 
 	var int_id = this.interactions.indexOf( interaction_name );
 	var skip_checking = (this.mode == '1.2' ? true : false);
@@ -413,12 +413,24 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 		// increment
 		this.interactions.push(interaction_name);
 	}
-
+    
 	if (learner_response) {
-        if (this.mode == '2004' && interaction_type)
+        if (this.mode == '2004' && interaction_type && correct_response_pattern) {
+            // Set the response to be the id
+            // [:] and ' ' are illegal characters but [.] and [,] are okay
+            id = learner_response.split('[:]');
+            if ( id[0] ) {
+                learner_response = id[0];
+            }
+            
+            // Send the learners answer id
 			this.SetValue('cmi.interactions.'+int_id+'.learner_response', learner_response);
-		else
+            
+            // Send the correct answer id
+            this.SetValue('cmi.interactions.'+int_id+'.correct_responses.0.pattern', correct_response_pattern);
+		} else {
 			this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response, skip_checking);
+        }
 	}
 
 	if (outcome=='passed' || outcome=='completed') {
