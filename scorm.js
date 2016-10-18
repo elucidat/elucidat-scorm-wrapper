@@ -418,9 +418,9 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
         if (this.mode == '2004' && interaction_type && correct_response_pattern) {
             // Set the response to be the id
             // [:] and ' ' are illegal characters but [.] and [,] are okay
-            id = learner_response.split('[:]');
-            if ( id[0] ) {
-                learner_response = id[0];
+            var answer_id = learner_response.split('[:]');
+            if ( answer_id[0] ) {
+                learner_response = answer_id[0];
             }
             
             // Send the learners answer id
