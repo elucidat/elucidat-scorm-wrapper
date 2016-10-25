@@ -420,7 +420,7 @@ Scorm.prototype.SetObjective = function ( objective_name, outcome, score, min, m
 	}
 };
 /* record an objective in the course */
-Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, outcome, learner_response, description ) { 
+Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, outcome, learner_response, description, interaction_type, correct_response_pattern ) { 
 
 	var int_id = this.interactions.indexOf( interaction_name );
 	var skip_checking = (this.mode == '1.2' ? true : false);
@@ -431,14 +431,29 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 
 		this.SetValue('cmi.interactions.'+int_id+'.id', interaction_name, skip_checking);
 		this.SetValue('cmi.interactions.'+int_id+'.objectives.0.id', objective_name, skip_checking);
-		if (this.mode == '2004') 
+		if (this.mode == '2004') {
 			this.SetValue('cmi.interactions.'+int_id+'.description', description);
+            this.SetValue('cmi.interactions.'+int_id+'.type', interaction_type);
+        }
 		// increment
 		this.interactions.push(interaction_name);
 	}
-
+    
 	if (learner_response) {
-		this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response, skip_checking);
+        if (this.mode == '2004' && interaction_type && correct_response_pattern) {
+            // Set the response to be the id
+            // [:] and ' ' are illegal characters but [.] and [,] are okay
+            var answer_id = learner_response.split('[:]');
+            if ( answer_id[0] ) {
+                learner_response = answer_id[0];
+            }
+            // Send the learners answer id
+			this.SetValue('cmi.interactions.'+int_id+'.learner_response', learner_response);
+            // Send the correct answer id
+            this.SetValue('cmi.interactions.'+int_id+'.correct_responses.0.pattern', correct_response_pattern);
+		} else {
+			this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response, skip_checking);
+        }
 	}
 
 	if (outcome=='passed' || outcome=='completed') {
