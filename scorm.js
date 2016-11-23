@@ -152,8 +152,10 @@ Scorm.prototype.Initialize = function () {
 
 	// mark course as incomplete if it has not been attempted
 	var status = this.GetCompletionStatus();
-	if (!status || status == 'not attempted' || status == 'unknown')
+	if (!status || status == 'not attempted' || status == 'unknown'){
 		this.SetIncomplete();
+        this.SetExit('suspend');
+    }
 
 	return this.active;
 };
