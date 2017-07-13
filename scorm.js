@@ -458,8 +458,9 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 			this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response, skip_checking);
         }
 	}
-
-	if (outcome=='passed' || outcome=='completed') {
+	if(outcome=='neutral'){
+		this.SetValue('cmi.interactions.'+int_id+'.result', 'neutral', skip_checking);
+	}else if (outcome=='passed' || outcome=='completed') {
 		this.SetValue('cmi.interactions.'+int_id+'.result', 'correct', skip_checking);
 
 	} else if (outcome=='failed') {
