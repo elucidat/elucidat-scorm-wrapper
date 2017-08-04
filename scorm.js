@@ -422,7 +422,7 @@ Scorm.prototype.SetObjective = function ( objective_name, outcome, score, min, m
 	}
 };
 /* record an objective in the course */
-Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, outcome, learner_response, description, interaction_type, correct_response_pattern ) { 
+Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, outcome, learner_response, description, interaction_type, correct_response_pattern, weighting ) { 
 
 	var int_id = this.interactions.indexOf( interaction_name );
 	var skip_checking = (this.mode == '1.2' ? true : false);
@@ -464,6 +464,7 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 				}
                 // Send the correct answer id
                 this.SetValue('cmi.interactions.'+int_id+'.correct_responses.0.pattern', correct_response_pattern);
+                this.SetValue('cmi.interactions.'+int_id+'.weighting', weighting);
             }
 		} else {
 			this.SetValue('cmi.interactions.'+int_id+'.student_response', learner_response, skip_checking);
