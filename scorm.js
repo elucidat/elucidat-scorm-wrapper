@@ -451,6 +451,17 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
                 
                 // Send the learners answer id
     			this.SetValue('cmi.interactions.'+int_id+'.learner_response', response);
+				//did it really set the value?
+				if(this.GetValue('cmi.interactions.'+int_id+'.learner_response') != response){
+					//No it hasn't set it to something guaranteed to be acceptable, then try setting it again!
+					this.SetValue('cmi.interactions.'+int_id+'.learner_response', "elucidaterror");
+					this.SetValue('cmi.interactions.'+int_id+'.learner_response', response);
+					if(this.GetValue('cmi.interactions.'+int_id+'.learner_response') != response){
+						//Oh dear it's still not setting, this probably means the [,] isnt allowed, lets replace it
+						var sanitised_response = response.split("[,]").join("__");
+						this.SetValue('cmi.interactions.'+int_id+'.learner_response', sanitised_response);
+					}
+				}
                 // Send the correct answer id
                 this.SetValue('cmi.interactions.'+int_id+'.correct_responses.0.pattern', correct_response_pattern);
             }
