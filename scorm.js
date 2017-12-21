@@ -444,8 +444,6 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 	if (learner_response) {
         if (this.mode == '2004') {
             if( interaction_type && correct_response_pattern ) {
-                // Set the response to be the id
-                // Send the learners answer id
     			this.SetValue('cmi.interactions.'+int_id+'.learner_response', learner_response);
 				//did it really set the value?
 				if(this.GetValue('cmi.interactions.'+int_id+'.learner_response') != learner_response){
