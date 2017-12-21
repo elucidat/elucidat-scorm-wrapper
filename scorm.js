@@ -444,16 +444,17 @@ Scorm.prototype.SetInteraction = function ( interaction_name, objective_name, ou
 	if (learner_response) {
         if (this.mode == '2004') {
             if( interaction_type && correct_response_pattern ) {
+                // Set the response to be the id
                 // Send the learners answer id
-    			this.SetValue('cmi.interactions.'+int_id+'.learner_response', response);
+    			this.SetValue('cmi.interactions.'+int_id+'.learner_response', learner_response);
 				//did it really set the value?
-				if(this.GetValue('cmi.interactions.'+int_id+'.learner_response') != response){
+				if(this.GetValue('cmi.interactions.'+int_id+'.learner_response') != learner_response){
 					//No it hasn't set it to something guaranteed to be acceptable, then try setting it again!
 					this.SetValue('cmi.interactions.'+int_id+'.learner_response', "elucidaterror");
-					this.SetValue('cmi.interactions.'+int_id+'.learner_response', response);
-					if(this.GetValue('cmi.interactions.'+int_id+'.learner_response') != response){
+					this.SetValue('cmi.interactions.'+int_id+'.learner_response', learner_response);
+					if(this.GetValue('cmi.interactions.'+int_id+'.learner_response') != learner_response){
 						//Oh dear it's still not setting, this probably means the [,] isnt allowed, lets replace it
-						var sanitised_response = response.split("[,]").join("__");
+						var sanitised_response = learner_response.split("[,]").join("__");
 						this.SetValue('cmi.interactions.'+int_id+'.learner_response', sanitised_response);
 					}
 				}
