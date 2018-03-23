@@ -196,7 +196,21 @@ Scorm.prototype.SetValue = function ( varname, value, skip_checking ) {
 
 		if (!skip_checking)
 			feedback += '? '+(error['code']?error['description']: 'Echo:'+checkback);
-
+		
+		if(error['code'] != 0){
+			if(top['postMessage']){
+				window.dispatchEvent(new CustomEvent('REPORT_ERROR', {
+					'detail': {
+						error: 'Scorm Error',
+						type: 'SCORM',
+						code: error['code'], 
+						description: error['description'], 
+						key: varname, 
+						value: value
+					}
+				}));
+			}
+		} 
 		console.log(feedback);
 		return error['code'];
 	}
