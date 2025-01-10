@@ -102,58 +102,67 @@ Scorm.prototype._format_time = function ( session_time ) {
 	}
 
 }
-Scorm.prototype._search_for_api = function ( win ) {
-	try {
-		while (win != null && this.scorm_interface == null) {
-			// record the API if we've found it
-			// if we have win.API first - so if both are present we opt for win.API
-			if (win.API) {
-				this.scorm_interface = win.API;
-			} else if (win.API_1484_11) {
-				this.scorm_interface = win.API_1484_11;
-			}
-			
-			// now branch off to look at the window opener of this window.
-			if (win.opener != null && !win.opener.closed)
-				this._search_for_api ( win.opener );
+Scorm.prototype._search_for_api = function (win, retries, delay) {
+    retries = typeof retries !== 'undefined' ? retries : 10; // Default retries to 10 if not provided
+    delay = typeof delay !== 'undefined' ? delay : 500;     // Default delay to 500ms if not provided
 
-			// if at the top - that's the end
-			if (win == win.parent)
-				win = null;
-			else
-				// up up up the tree
-				win = win.parent;
-		}
-	} catch(err) {
-		return null;
-  	}
+    var self = this; // Preserve the `this` context for use inside nested functions
+
+    function searchTree(win) {
+        try {
+            while (win != null && self.scorm_interface == null) {
+                // Check for SCORM API objects
+                if (win.API) {
+                    self.scorm_interface = win.API;
+                    return;
+                } else if (win.API_1484_11) {
+                    self.scorm_interface = win.API_1484_11;
+                    return;
+                }
+
+                // Check the opener
+                if (win.opener != null && !win.opener.closed) {
+                    searchTree(win.opener);
+                }
+
+                // Traverse up the parent tree
+                if (win === win.parent) {
+                    win = null;
+                } else {
+                    win = win.parent;
+                }
+            }
+        } catch (err) {
+            console.error("Error searching for SCORM API:", err);
+        }
+    }
+
+    function tryFindAPI() {
+        // Search the tree starting from the current window
+        searchTree(win);
+
+        // If not found and retries are remaining, retry after the delay
+        if (self.scorm_interface == null && retries > 0) {
+            setTimeout(function () {
+                self._search_for_api(win, retries - 1, delay);
+            }, delay);
+        } else if (self.scorm_interface == null) {
+            console.warn("SCORM API not found after maximum retries.");
+        }
+    }
+
+    tryFindAPI();
 };
 /* general API calls */
 Scorm.prototype.Check = function () {
 	var error = 0, error_string = '';
 	if (this.mode == '2004') {
 		error = parseInt(this.scorm_interface.GetLastError()); 
-		if (error) {
-			console.log('Scorm:Check - Found error code: '+error);
-			try {
-				error_string = 'Error ('+error+'): '+this.scorm_interface.GetErrorString(error);
-			} catch (e) {
-				console.error("There was a problem getting the error from the LMS", e);
-			}
-		}
+		if (error) error_string = 'Error ('+error+'): '+this.scorm_interface.GetErrorString(error);
 	} else if (this.mode == '1.2') {
-		error = parseInt(this.scorm_interface.LMSGetLastError());
-
-		if (error) {
-			console.log('Scorm:Check - Found error code: '+error);
-			try {
-				error_string = 'Error ('+error+'): '+this.scorm_interface.LMSGetErrorString(error);
-			} catch (e) {
-				console.error("There was a problem getting the error from the LMS", e);
-			}
-		}
+		error = parseInt(this.scorm_interface.LMSGetLastError()); 
+		if (error) error_string = 'Error ('+error+'): '+this.scorm_interface.LMSGetErrorString(error);
 	}
-
 	return { 'code': error, 'description': error_string };
 };
 Scorm.prototype.Initialize = function () { 
