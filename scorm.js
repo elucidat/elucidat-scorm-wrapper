@@ -157,12 +157,28 @@ Scorm.prototype._search_for_api = function (win, retries, delay) {
 Scorm.prototype.Check = function () {
 	var error = 0, error_string = '';
 	if (this.mode == '2004') {
-		error = parseInt(this.scorm_interface.GetLastError()); 
-		if (error) error_string = 'Error ('+error+'): '+this.scorm_interface.GetErrorString(error);
+		error = parseInt(this.scorm_interface.GetLastError());
+		if (error) {
+			console.log('Scorm:Check - Found error code: '+error);
+			try {
+				error_string = 'Error ('+error+'): '+this.scorm_interface.GetErrorString(error);
+			} catch (e) {
+				console.error("There was a problem getting the error from the LMS", e);
+			}
+		}
 	} else if (this.mode == '1.2') {
-		error = parseInt(this.scorm_interface.LMSGetLastError()); 
-		if (error) error_string = 'Error ('+error+'): '+this.scorm_interface.LMSGetErrorString(error);
+		error = parseInt(this.scorm_interface.LMSGetLastError());
+
+		if (error) {
+			console.log('Scorm:Check - Found error code: '+error);
+			try {
+				error_string = 'Error ('+error+'): '+this.scorm_interface.LMSGetErrorString(error);
+			} catch (e) {
+				console.error("There was a problem getting the error from the LMS", e);
+			}
+		}
 	}
+
 	return { 'code': error, 'description': error_string };
 };
 Scorm.prototype.Initialize = function () { 
