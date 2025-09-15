@@ -201,6 +201,14 @@ Scorm.prototype.Initialize = function () {
 	return this.active;
 };
 Scorm.prototype.Terminate = function () { 
+    // Defensively check for the nested property
+    if (window.e && 
+        window.e.elucidat && 
+        window.e.elucidat.options && 
+        window.e.elucidat.options.enable_success_factors_support) {
+        this.Commit();
+        console.log('Scorm:Terminate - Success Factors Support Enabled, extra commit');
+    }
 	console.log('Scorm:Terminate');
 	if (this.mode == '2004') {
 		this.scorm_interface.Terminate('');
