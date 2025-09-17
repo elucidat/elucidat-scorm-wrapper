@@ -53,16 +53,6 @@ var Scorm = function (options) {
 	
 	if (this.scorm_interface == null) {
 		this.mode = this.options.debug_mode;
-		// if we have the scorm_mode variable then
-		/* -- assess impact on BMJ before adding
-		if (window['default_scorm_mode'] && default_scorm_mode !== undefined) {
-			// if it's a string
-			if(typeof(default_scorm_mode) === 'string') {
-				// set the mode to the scorm_mode value passed through
-				this.mode = default_scorm_mode;
-			}
-		}
-		*/
 		this.is_debug = true;
 		console.log('LMS not present - Created SCORM '+this.mode+' Debug interface.'); 
 		this.scorm_interface = new Debug_API();
@@ -82,10 +72,6 @@ Scorm.prototype._format_time = function ( session_time ) {
 	}
 	// convert session time to seconds
 	session_time /= 1000;
-
-	// scorm 2004
-	//if (this.mode == '2004')
-	//	return Math.round(session_time);
 
 	// split out the time parts
 	var hours = Math.floor(session_time / 3600);
@@ -201,6 +187,14 @@ Scorm.prototype.Initialize = function () {
 	return this.active;
 };
 Scorm.prototype.Terminate = function () { 
+    // Defensively check for the nested property
+    if (window.e && 
+        window.e.elucidat && 
+        window.e.elucidat.options && 
+        window.e.elucidat.options.enable_success_factors_support) {
+        this.Commit();
+        console.log('Scorm:Terminate - Success Factors Support Enabled, extra commit');
+    }
 	console.log('Scorm:Terminate');
 	if (this.mode == '2004') {
 		this.scorm_interface.Terminate('');
