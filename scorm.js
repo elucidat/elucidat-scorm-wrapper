@@ -233,6 +233,17 @@ Scorm.prototype.SetValue = function ( varname, value, skip_checking ) {
 			feedback += '? '+(error['code']?error['description']: 'Echo:'+checkback);
 		
 		if(error['code'] && error['code'] !== 0){
+            var is4xxError = error['code'] >= 400 && error['code'] < 500;
+            if (!is4xxError && window.e && window.e.elucidat && window.e.elucidat.options && window.e.elucidat.options.enable_success_factors_support) {
+                alert(
+                  "An error has been detected in the LMS. Please report the following details to your administrator.\n" +
+                    "Error Code: " +
+                    error['code'] +
+                    "\n" +
+                    "Description: " +
+                    error['description']
+                );
+            }
 			try {
 				window.dispatchEvent(new CustomEvent('REPORT_ERROR', {
 					'detail': {
